@@ -1,0 +1,16 @@
+services:
+  celery_worker_1:
+    image: backend
+    entrypoint: "sh docker-entrypoint/celery-entrypoint.sh"
+    env_file:
+      - ../dotenv/.env.dev
+    volumes:
+      - ~/features/dotenv:/dotenv
+    restart: unless-stopped
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.docker
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: "0.4"
+    #       memory: 1024M

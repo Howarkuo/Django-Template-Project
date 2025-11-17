@@ -1,0 +1,60 @@
+services:
+  backend:
+    image: backend
+    ports:
+      - "80:80"
+    entrypoint: "sh docker-entrypoint/django-entrypoint.sh"
+    env_file:
+      - ../dotenv/.env.rel
+    volumes:
+      - ~/features/dotenv:/dotenv
+      - ~/features/logs:/logs
+    restart: unless-stopped
+    healthcheck:
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 1m
+      test: curl -f http://localhost/api/health_check/ || exit 1
+    environment:
+      - DJANGO_SETTINGS_MODULE=ainsight_backend.config.settings.docker
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1024M
+
+  celery_worker:
+    image: backend
+    depends_on:
+      backend:
+        condition: service_healthy
+    entrypoint: "sh docker-entrypoint/celery-entrypoint.sh"
+    env_file:
+      - ../dotenv/.env.rel
+    volumes:
+      - ~/features/dotenv:/dotenv
+    restart: unless-stopped
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.docker
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1024M
+
+  # celery_flower:
+  #   image: backend
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     celery_worker:
+  #       condition: service_started
+  #   entrypoint: "sh docker-entrypoint/flower-entrypoint.sh"
+  #   env_file:
+  #     - ../dotenv/.env.rel
+  #   volumes:
+  #     - ~/features/dotenv:/dotenv
+  #   restart: unless-stopped
+  #   environment:
+  #     - DJANGO_SETTINGS_MODULE=config.settings.docker

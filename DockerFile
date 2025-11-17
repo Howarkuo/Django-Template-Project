@@ -1,0 +1,16 @@
+FROM python:3.12
+
+RUN pip install --upgrade pip setuptools wheel
+
+COPY ./requirements.txt /requirements.txt
+RUN pip install -r /requirements.txt
+
+COPY ./manage.py /manage.py
+COPY ./run_asgi.py /run_asgi.py
+COPY ./docker-entrypoint /docker-entrypoint
+
+RUN apt-get update
+RUN apt-get install -y locales locales-all
+
+COPY ./features /features
+COPY ./config /config
